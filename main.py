@@ -43,13 +43,6 @@ alien_changeY = []
 
 number_of_enemies = 8
 
-for i in range(number_of_enemies):
-    alienImg.append(pg.image.load("001-space-ship.png"))
-    alienX.append(random.randint(0, 1036))
-    alienY.append(random.randint(40, 150))
-    alien_changeX.append(4)
-    alien_changeY.append(40)
-
 
 def alien(x, y, i):
     # display alien image
@@ -60,7 +53,7 @@ def alien(x, y, i):
 bulletImg = pg.image.load("001-bullet.png")
 bulletX = 0
 bulletY = 580
-bullet_changeY = 10
+bullet_changeY = 20
 
 # ready state - you can't see the bullet
 # fire state - bullet is moving
@@ -88,15 +81,28 @@ def bullet_fire(x, y):
 
 def isCollision(alienX, alienY, bulletX, bulletY):
     distance = math.sqrt((math.pow((alienX - bulletX), 2)) + (math.pow((alienY - bulletY), 2)))
-    if distance < 37:
+    if distance < 32:
         return True
     return False
 
+
+# Game Over
 over_font = pg.font.Font("freesansbold.ttf", 64)
 
+
 def game_over_text():
-    over_text = over_font.render("GAME OVER" , True, (255, 255, 255))
+    over_text = over_font.render("GAME OVER", True, (255, 255, 255))
     screen.blit(over_text, (350, 300))
+
+
+# Lifes
+life = 3
+
+lifeImg = []
+
+def lifes(x, y, i):
+    # display player image
+    screen.blit(lifeImg[i], (x, y))
 
 
 running = True
@@ -113,11 +119,11 @@ while running:
         # KEYDOWN is when the button is pressed
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_LEFT:
-                player_changeX = -5
+                player_changeX = -11
             if event.key == pg.K_RIGHT:
-                player_changeX = 5
+                player_changeX = 11
             if event.key == pg.K_SPACE:
-                # checks wether the bullet is on the screen or not
+                # checks whether the bullet is on the screen or not
                 if bullet_state == "ready":
                     bullet_sound = mixer.Sound("laser.wav")
                     bullet_sound.play()
@@ -138,25 +144,35 @@ while running:
 
     # enemy movement
     for i in range(number_of_enemies):
-
+        alienImg.append(pg.image.load("001-space-ship.png"))
+        alienX.append(random.randint(0, 1036))
+        alienY.append(random.randint(40, 150))
+        alien_changeX.append(10)
+        alien_changeY.append(40)
         # Game Over
         if alienY[i] > 540:
-            for j in range(number_of_enemies):
-                alienY[j] = 2000
-            game_over_text()
-            break
+            life = life - 1
+            alienY[i] = random.randint(40, 150)
+            alienX[i] = random.randint(0, 1036)
+            if life < 1:
+                for j in range(number_of_enemies):
+                    alienY[j] = 2000
+                game_over_text()
+                break
 
         alienX[i] += alien_changeX[i]
         if alienX[i] <= 0:
-            alien_changeX[i] = 4
+            alien_changeX[i] = 10
             alienY[i] += alien_changeY[i]
         elif alienX[i] >= 1036:
-            alien_changeX[i] = -4
+            alien_changeX[i] = -10
             alienY[i] += alien_changeY[i]
 
         # collision
         collision = isCollision(alienX[i], alienY[i], bulletX, bulletY)
         if collision:
+            if number_of_enemies < 40:
+                number_of_enemies += 1
             explosion_sound = mixer.Sound("explosion.wav")
             explosion_sound.play()
             bulletY = 580
@@ -180,6 +196,13 @@ while running:
     # calling player function
     player(playerX, playerY)
     show_score(ScoreX, ScoreY)
-
+    life_changeX = 10
+    for i in range(life):
+        lifeImg.append(pg.image.load("001-heart.png"))
+        lifeX = life_changeX
+        lifeY = 45
+        if life > -1:
+            lifes(lifeX, lifeY, i)
+        life_changeX += 35
     # updating display of pygame
     pg.display.update()
